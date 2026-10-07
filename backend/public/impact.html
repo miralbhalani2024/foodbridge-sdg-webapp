@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+  impact.html — a PLAIN HTML + CSS + JavaScript page (no React).
+  Purpose for viva: shows Modules 2 & 3 directly —
+    • Semantic HTML5 tags: header, nav, main, section, article, footer
+    • CSS: variables, Flexbox, Grid, media query (responsive)
+    • JavaScript: fetch() + async/await, DOM manipulation, event listener
+  Open: http://localhost:5000/impact.html  (served by express.static)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodBridge — Live Impact (Vanilla JS)</title>
+  <style>
+    :root {
+      --green: #1f7a4d;
+      --green-light: #e8f5ee;
+      --orange: #e8833a;
+      --text: #1d2a24;
+      --muted: #5c6b63;
+      --card: #ffffff;
+      --bg: #f5f7f4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+    header { background: var(--green); color: #fff; padding: 1rem 1.5rem; }
+    nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; } /* Flexbox */
+    nav a { color: #fff; text-decoration: none; margin-left: 1rem; }
+
+    main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: .3rem; }
+    .muted { color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0; } /* CSS Grid */
+    .card { background: var(--card); border-radius: 12px; padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .card .value { font-size: 2rem; font-weight: 700; color: var(--green); }
+    .card .label { color: var(--muted); font-size: .9rem; }
+
+    .bar-row { display: flex; align-items: center; gap: .6rem; margin: .5rem 0; }
+    .bar-row span:first-child { width: 140px; text-transform: capitalize; }
+    .bar { height: 14px; background: var(--orange); border-radius: 7px; transition: width .6s ease; }
+
+    button { background: var(--green); color: #fff; border: 0; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    button:hover { opacity: .9; }
+    #error { color: #b00020; margin-top: 1rem; }
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: .9rem; }
+
+    @media (max-width: 700px) {           /* Responsive: 2 columns on phones */
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <strong>🍲 FoodBridge</strong>
+      <div><a href="http://localhost:5173">Open React App</a><a href="/api/stats">Raw JSON</a></div>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1>Live SDG Impact</h1>
+      <p class="muted">This page is plain HTML/CSS/JS. It calls <code>GET /api/stats</code> with <code>fetch()</code> and updates the DOM.</p>
+    </section>
+
+    <section class="grid" id="stats">
+      <article class="card"><div class="value" id="meals">–</div><div class="label">Meals served (SDG 2)</div></article>
+      <article class="card"><div class="value" id="kg">–</div><div class="label">Kg food rescued (SDG 12)</div></article>
+      <article class="card"><div class="value" id="co2">–</div><div class="label">Kg CO₂e avoided (SDG 13)</div></article>
+      <article class="card"><div class="value" id="rate">–</div><div class="label">Rescue rate</div></article>
+    </section>
+
+    <section class="card">
+      <h2>Rescued food by category</h2>
+      <div id="bars"><p class="muted">Loading…</p></div>
+    </section>
+
+    <p style="margin-top:1rem"><button id="refresh">↻ Refresh</button> <span class="muted" id="updated"></span></p>
+    <p id="error"></p>
+  </main>
+
+  <footer>FoodBridge · Web Application Development PBL · SDG 2 & 12</footer>
+
+  <script>
+    // ---- JavaScript: async/await + fetch + DOM manipulation ----
+    async function loadStats() {
+      const errorBox = document.getElementById('error');
+      errorBox.textContent = '';
+      try {
+        const response = await fetch('/api/stats');             // HTTP GET request
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();                    // parse JSON
+
+        // update text of existing elements
+        document.getElementById('meals').textContent = data.impact.meals.toLocaleString('en-IN');
+        document.getElementById('kg').textContent = data.impact.kg;
+        document.getElementById('co2').textContent = data.impact.co2SavedKg;
+        document.getElementById('rate').textContent = data.rescueRate + '%';
+
+        // build new elements dynamically
+        const bars = document.getElementById('bars');
+        bars.innerHTML = '';
+        const max = Math.max(1, ...data.byCategory.map(c => c.kg));
+        if (data.byCategory.length === 0) bars.innerHTML = '<p class="muted">No food rescued yet.</p>';
+        data.byCategory.forEach(c => {
+          const row = document.createElement('div');
+          row.className = 'bar-row';
+          row.innerHTML = `<span>${c.category.replace('-', ' & ')}</span>
+                           <div class="bar" style="width:${(c.kg / max) * 60}%"></div>
+                           <span>${c.kg} kg</span>`;
+          bars.appendChild(row);
+        });
+
+        document.getElementById('updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+      } catch (err) {
+        errorBox.textContent = 'Could not load stats: ' + err.message;
+      }
+    }
+
+    document.getElementById('refresh').addEventListener('click', loadStats); // event listener
+    loadStats(); // load once when the page opens
+  </script>
+</body>
+</html>

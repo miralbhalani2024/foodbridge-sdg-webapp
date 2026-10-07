@@ -1,0 +1,29 @@
+{
+  "name": "foodbridge-backend",
+  "version": "1.0.0",
+  "description": "FoodBridge REST API - SDG 2 (Zero Hunger) & SDG 12 (Responsible Consumption)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node src/seed.js",
+    "test": "jest --verbose"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.6",
+    "express": "^4.22.3",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.24.5"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1"
+  }
+}

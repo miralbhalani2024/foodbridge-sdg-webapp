@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "FoodBridge API",
+    "description": "Import into Postman. Run 'Login as Donor' or 'Login as NGO' first: the token is saved automatically into the {{token}} variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "token", "value": "" },
+    { "key": "donationId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    { "name": "Health check", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
+    {
+      "name": "Register (new donor)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/register",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Cafe\",\n  \"email\": \"cafe{{$randomInt}}@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"donor\",\n  \"organization\": \"Test Cafe\",\n  \"city\": \"Vadodara\"\n}" }
+      }
+    },
+    {
+      "name": "Login as Donor (saves token)",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().token);"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"donor@foodbridge.in\",\n  \"password\": \"password123\"\n}" }
+      }
+    },
+    {
+      "name": "Login as NGO (saves token)",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().token);"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"ngo@foodbridge.in\",\n  \"password\": \"password123\"\n}" }
+      }
+    },
+    { "name": "Who am I (protected)", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } },
+    { "name": "List available donations (with filters)", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/donations?status=available&city=Vadodara", "host": ["{{baseUrl}}"], "path": ["donations"], "query": [{ "key": "status", "value": "available" }, { "key": "city", "value": "Vadodara" }] } } },
+    {
+      "name": "Create donation (donor token)",
+      "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('donationId', pm.response.json().donation._id);"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/donations",
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Veg pulao (postman test)\",\n  \"category\": \"cooked\",\n  \"quantityKg\": 12,\n  \"expiresAt\": \"2030-01-01T18:00:00.000Z\",\n  \"pickupAddress\": \"Alkapuri\",\n  \"city\": \"Vadodara\"\n}" }
+      }
+    },
+    { "name": "Get one donation", "request": { "method": "GET", "url": "{{baseUrl}}/donations/{{donationId}}" } },
+    {
+      "name": "Update donation (donor token)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/donations/{{donationId}}",
+        "body": { "mode": "raw", "raw": "{\n  \"quantityKg\": 15\n}" }
+      }
+    },
+    { "name": "Claim donation (NGO token)", "request": { "method": "PATCH", "url": "{{baseUrl}}/donations/{{donationId}}/claim" } },
+    { "name": "Mark picked up (NGO or donor token)", "request": { "method": "PATCH", "url": "{{baseUrl}}/donations/{{donationId}}/pickup" } },
+    { "name": "My donations / claims", "request": { "method": "GET", "url": "{{baseUrl}}/donations/mine" } },
+    { "name": "Delete donation (donor token)", "request": { "method": "DELETE", "url": "{{baseUrl}}/donations/{{donationId}}" } },
+    { "name": "Public impact stats", "request": { "method": "GET", "url": "{{baseUrl}}/stats" } }
+  ]
+}

@@ -1,0 +1,25 @@
+# OPTIONAL: run everything (MongoDB + app) with ONE command if you have Docker Desktop:
+#   docker compose up --build
+# then open http://localhost:5000
+# Seed demo data:  docker compose exec app node src/seed.js
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/foodbridge
+      JWT_SECRET: docker_demo_secret_change_me
+      NODE_ENV: production
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:

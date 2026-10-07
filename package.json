@@ -1,0 +1,17 @@
+{
+  "name": "foodbridge",
+  "version": "1.0.0",
+  "description": "FoodBridge - SDG-oriented MERN web app (React + Node/Express + MongoDB)",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -n API,WEB -c green,cyan \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "seed": "npm run seed --prefix backend",
+    "test": "npm test --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
